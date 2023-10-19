@@ -1,0 +1,20 @@
+from  fastai.vision.all import *
+from fastbook import *
+
+path=untar_data(URLs.PETS)/'images'
+
+def is_cat(x): return x[0].isupper()
+dls = ImageDataLoaders.from_name_func(
+    path, get_image_files(path), label_func=is_cat,
+    valid_pct=0.2, seed=39, item_tfms=Resize(224)
+)
+
+learner = vision_learner(dls, resnet34, metrics=error_rate)
+learner.fine_tune(1)
+
+uploader = widgets.FileUpload()
+
+img = PILImage.create(uploader.data[0])
+is_kitty,_,probs = learner.predict(img)
+print(f'Is this a cat? {is_kitty}')
+print(f'Cat is {probs[1].item():.04f} probable')
